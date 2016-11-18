@@ -64,7 +64,7 @@ def mip3d(img, v_range=None):
 
 
 from .ImageSliceDisplay import ImageSliceDisplay
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 # place holder for qt application
 qApp = None

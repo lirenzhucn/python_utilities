@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from PyQt4.QtGui import (QLabel, QDialog, QPixmap, QPainter, QColor,
-                         QScrollBar, QPushButton, QVBoxLayout, QHBoxLayout,
-                         QWidget, QImage, QMenu)
-from PyQt4.QtCore import Qt, pyqtSlot, SIGNAL
+from PyQt5.QtWidgets import (QLabel, QDialog, QScrollBar, QPushButton,
+                             QVBoxLayout, QHBoxLayout, QWidget, QMenu)
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QImage
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 import numpy as np
 from scipy.interpolate import interp1d
 
@@ -23,10 +23,10 @@ register_cmap(name='green', cmap=green_cm)
 
 class DoubleClickableLabel(QLabel):
     """A QLabel that sends out doubleClicked signal"""
-    __pyqtSignals__ = ('doubleClicked()')
+    doubleClicked = pyqtSignal()
 
     def mouseDoubleClickEvent(self, event):
-        self.emit(SIGNAL('doubleClicked()'))
+        self.doubleClicked.emit()
 
 
 class TGCDialog(QDialog):
@@ -93,7 +93,7 @@ class TGCDialog(QDialog):
 
 class MinMaxDialog(QDialog):
 
-    __pyqtSignals__ = ('minMaxChanged()')
+    minMaxChanged = pyqtSignal()
 
     def __init__(self, dMin, dMax, imgStat, parent=None):
         QDialog.__init__(self, parent)
@@ -180,7 +180,7 @@ class MinMaxDialog(QDialog):
             self.imgStat.min
         self.drawHistLabel()
         self.mLbHist.update()
-        self.emit(SIGNAL('minMaxChanged()'))
+        self.minMaxChanged.emit()
 
     @property
     def results(self):
@@ -300,8 +300,7 @@ class ImageSliceDisplay(QWidget):
         layout.addWidget(self.mScSlice)
         # signal/slot pairs
         self.mScSlice.valueChanged.connect(self.onSliceChanged)
-        self.connect(self.mLbDisplay, SIGNAL('doubleClicked()'),
-                     self.onDisplayDoubleClicked)
+        self.mLbDisplay.doubleClicked.connect(self.onDisplayDoubleClicked)
         self.mLbDisplay.setContextMenuPolicy(Qt.CustomContextMenu)
         self.mLbDisplay.customContextMenuRequested.connect(
             self.openDisplayContextMenu)
@@ -335,11 +334,9 @@ class ImageSliceDisplay(QWidget):
     @pyqtSlot()
     def onDisplayDoubleClicked(self):
         self.mmDialog = MinMaxDialog(self.dMin, self.dMax, self.imgStat, self)
-        self.connect(self.mmDialog, SIGNAL('minMaxChanged()'),
-                     self.minMaxChange)
+        self.mmDialog.minMaxChanged.connect(self.minMaxChange)
         self.mmDialog.exec_()
-        self.disconnect(self.mmDialog, SIGNAL('minMaxChanged()'),
-                        self.minMaxChange)
+        self.mmDialog.minMaxChanged.disconnect(self.minMaxChange)
 
     def onTGCEdit(self):
         im = self.orgImgData
